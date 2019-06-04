@@ -1,30 +1,52 @@
 import React from 'react';
-import { Platform, StatusBar, StyleSheet, View } from 'react-native';
-import { AppLoading, Asset, Font, Icon } from 'expo';
+import {Platform, StatusBar, StyleSheet, View} from 'react-native';
+import {AppLoading, Asset, Font, Icon} from 'expo';
 import AppNavigator from './navigation/AppNavigator';
 
 export default class App extends React.Component {
   state = {
     isLoadingComplete: false,
+    theme: null,
+    currentTheme: null,
+    isReady: false,
   };
 
+  changeTheme = (theme, currentTheme) => {
+    this.setState({theme, currentTheme});
+  };
+
+  async componentDidMount() {
+    await Font.loadAsync(
+      'antoutline',
+      // eslint-disable-next-line
+      require('@ant-design/icons-react-native/fonts/antoutline.ttf'),
+    ); // Load fonts
+
+    await Font.loadAsync(
+      'antfill',
+      // eslint-disable-next-line
+      require('@ant-design/icons-react-native/fonts/antfill.ttf'),
+    ); // Load fonts
+
+    // eslint-disable-next-line
+    this.setState({isReady: true}); // Set state
+  }
+
   render() {
-    if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
-      return (
-        <AppLoading
-          startAsync={this._loadResourcesAsync}
-          onError={this._handleLoadingError}
-          onFinish={this._handleFinishLoading}
-        />
-      );
-    } else {
-      return (
-        <View style={styles.container}>
-          {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
-          <AppNavigator />
-        </View>
-      );
+    const {theme, currentTheme, isReady} = this.state; // Set state
+
+    if (!isReady) {
+      // Check is ready
+      return <AppLoading />;
     }
+
+    return (
+      <Provider theme={theme}>
+        <RootNavigator
+          screenProps={{changeTheme: this.changeTheme, currentTheme}}
+        />
+      </Provider>
+    );
   }
 
   _loadResourcesAsync = async () => {
@@ -50,7 +72,7 @@ export default class App extends React.Component {
   };
 
   _handleFinishLoading = () => {
-    this.setState({ isLoadingComplete: true });
+    this.setState({isLoadingComplete: true});
   };
 }
 
